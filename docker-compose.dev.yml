@@ -23,6 +23,8 @@ services:
     volumes:
       - mysql_db:/var/lib/mysql
       - $PWD/mysql/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    ports:
+      - "3306:3306"
 
   redis:
     image: redis:7
