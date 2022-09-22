@@ -6,12 +6,6 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '20 1 * * *'
-  
-
-env:
-  MYSQL_ROOT_PASSWORD: orbitar
-  BACKUP_PASSWORD: ratibro
-
 
 jobs:
   backup-db:
