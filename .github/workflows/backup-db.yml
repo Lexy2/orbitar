@@ -12,14 +12,11 @@ on:
 
 jobs:
   backup-db:
-    runs-on: [self-hosted, stage]
-    environment: Staging # will be production after testing
+    runs-on: [self-hosted, prod]
+    environment: Production
     steps:
       - name: Set backup name
-        run: |
-          BACKUP_FILE_NAME=${HOSTNAME}_$(date +%Y-%m-%d_%H-%M-%S)_dump.sql
-          echo "backupFileName=$BACKUP_FILE_NAME" >> $GITHUB_ENV
-          echo '::set-output backupFileName=$BACKUP_FILE_NAME'
+        run: echo "backupFileName=${HOSTNAME}_$(date +%Y-%m-%d_%H-%M-%S)_dump.sql" >> $GITHUB_ENV
 
       - name: Dump database
         env:
@@ -35,3 +32,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           path: ${{ env.backupFileName }}.zip
+          if-no-files-found: error
