@@ -21,12 +21,12 @@ jobs:
       - name: Dump database
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-        run: docker-compose -f /orbitar/docker-compose.yml exec -T mysql mysqldump --default-character-set=utf8mb4 --single-transaction --add-drop-database --databases orbitar_db activity_db -u root -p$MYSQL_ROOT_PASSWORD > ${{ env.backupFileName }}
+        run: echo $MYSQL_ROOT_PASSWORD | docker-compose -f /orbitar/docker-compose.yml exec -T mysql mysqldump --default-character-set=utf8mb4 --single-transaction --add-drop-database --databases orbitar_db activity_db -u root -p > ${{ env.backupFileName }}
       
       - name: Compress database
         env:
           BACKUP_PASSWORD: ${{ secrets.BACKUP_PASSWORD }}
-        run: zip -m -P $BACKUP_PASSWORD ${{ env.backupFileName }}.zip ${{ env.backupFileName }}
+        run: echo $BACKUP_PASSWORD | zip -m -e ${{ env.backupFileName }}.zip ${{ env.backupFileName }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
