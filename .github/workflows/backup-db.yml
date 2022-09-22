@@ -26,7 +26,7 @@ jobs:
       - name: Compress database
         env:
           BACKUP_PASSWORD: ${{ secrets.BACKUP_PASSWORD }}
-        run: echo $BACKUP_PASSWORD | zip -m -e ${{ env.backupFileName }}.zip ${{ env.backupFileName }}
+        run: zip -m -P $BACKUP_PASSWORD ${{ env.backupFileName }}.zip ${{ env.backupFileName }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
