@@ -1,0 +1,46 @@
+name: Restore Sanitized DB
+
+concurrency: stage
+
+on:
+  push:
+    branches: 
+      - db-actions
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  sanitize-db:
+    runs-on: ubuntu-latest
+    environment: Production
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run default MySQL instance
+        run: echo MYSQL_ROOT_PASSWORD=root > .env && docker-compose -f .\docker-compose.local.yml -p maintenance up -d mysql
+
+      - name: 
+
+  backup-db:
+    runs-on: [self-hosted, prod]
+    environment: Production
+    steps:
+      - name: Set backup name
+        run: echo "backupFileName=${HOSTNAME}_$(date +%Y-%m-%d_%H-%M-%S)_dump.sql" >> $GITHUB_ENV
+
+      - name: Dump database
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+        run: docker-compose -f /orbitar/docker-compose.yml exec -T mysql mysqldump --default-character-set=utf8mb4 --single-transaction --add-drop-database --databases orbitar_db activity_db -u root -p$MYSQL_ROOT_PASSWORD > ${{ env.backupFileName }}
+      
+      - name: Compress database
+        env:
+          BACKUP_PASSWORD: ${{ secrets.BACKUP_PASSWORD }}
+        run: zip -m -P $BACKUP_PASSWORD ${{ env.backupFileName }}.zip ${{ env.backupFileName }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.backupFileName }}
+          path: ${{ env.backupFileName }}.zip
+          if-no-files-found: error
