@@ -15,7 +15,7 @@ jobs:
     environment: Production
     steps:
       - name: Run default MySQL instance
-        run: docker run --rm --publish 3306:3306 --env MYSQL_ROOT_PASSWORD=root --name mysql --platform linux/amd64 mysql:5.7
+        run: docker run --rm --detach --publish 3306:3306 --env MYSQL_ROOT_PASSWORD=root --name mysql --platform linux/amd64 mysql:5.7
 
       - name: Download DB backup
         uses: dawidd6/action-download-artifact@v2
@@ -26,6 +26,10 @@ jobs:
 
       - name: Show what was downloaded
         run: ls -lR
+
+      - name: Stop MySQL instance
+        run: docker stop mysql
+
 # delete from invites;
 # delete from user_webpush;
 # update users set email='***';

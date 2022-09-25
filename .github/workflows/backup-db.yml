@@ -3,9 +3,6 @@ name: Backup DB
 concurrency: prod
 
 on:
-  push:
-    branches: 
-      - db-actions
   workflow_dispatch:
   schedule:
     - cron: '20 1 * * *'
