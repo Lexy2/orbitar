@@ -24,15 +24,67 @@ jobs:
           workflow_conclusion: success
           check_artifacts: true
 
-      - name: Show what was downloaded
-        run: ls -lR
+      - name: Unzip artifact & load DB
+        env:
+          BACKUP_PASSWORD: ${{ secrets.BACKUP_PASSWORD }}
+        run: |
+          cd `ls -t | head -n 1`
+          unzip -P $BACKUP_PASSWORD `ls -t | head -n 1`
+          cat `ls -t *.sql | head -n 1` | docker exec -i mysql /usr/bin/mysql -u root --password=root
+
+      - name: Remove PII
+        run: |
+          cat <<EOF | docker exec -i mysql /usr/bin/mysql -u root --password=root
+          delete from invites;
+          delete from user_webpush;
+          update users set email='user@example.com';
+          EOF
+
+      - name: Dump database
+        run:  docker exec -i mysql mysqldump --default-character-set=utf8mb4 --single-transaction --add-drop-database --databases orbitar_db activity_db -u root -proot > stage-backup.sql
+      
+      - name: Compress database
+        env:
+          BACKUP_PASSWORD: ${{ secrets.STAGING_BACKUP_PASSWORD }}
+        run: zip -m -P $STAGING_BACKUP_PASSWORD stage-backup.zip stage-backup.sql
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: stage-backup
+          path: stage-backup.zip
+          if-no-files-found: error
 
       - name: Stop MySQL instance
         run: docker stop mysql
 
-# delete from invites;
-# delete from user_webpush;
-# update users set email='***';
+  restore-db:
+    needs: sanitize-db
+    environment: Staging
+    runs-on: [self-hosted, stage]
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: stage-backup
+
+      - name: Unzip backup
+        env:
+          BACKUP_PASSWORD: ${{ secrets.BACKUP_PASSWORD }}
+        run: |
+          unzip -P $BACKUP_PASSWORD `ls -t | head -n 1`
+          cat `ls -t *.sql | head -n 1` | docker exec -i mysql /usr/bin/mysql -u root --password=root
+
+      - name: Stop backend
+        run: docker-compose -f /orbitar/docker-compose.yml stop backend
+
+      - name: Restore backup
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+        run: docker-compose -f /orbitar/docker-compose.yml exec -T mysql /usr/bin/mysql -u root --password=$MYSQL_ROOT_PASSWORD --default-character-set=utf8mb4 < `ls -t *.sql | head -n 1`
+
+      - name: Restart backend
+        run: docker-compose -f /orbitar/docker-compose.yml start backend
 
   # backup-db:
   #   runs-on: [self-hosted, prod]
