@@ -34,7 +34,7 @@ jobs:
 
       - name: Remove PII
         run: |
-          cat <<EOF | docker exec -i mysql /usr/bin/mysql -u root --password=root
+          cat <<EOF | docker exec -i mysql /usr/bin/mysql -u root -proot
           delete from invites;
           delete from user_webpush;
           update users set email='user@example.com';
@@ -73,7 +73,7 @@ jobs:
           BACKUP_PASSWORD: ${{ secrets.BACKUP_PASSWORD }}
         run: |
           unzip -P $BACKUP_PASSWORD `ls -t | head -n 1`
-          cat `ls -t *.sql | head -n 1` | docker exec -i mysql /usr/bin/mysql -u root --password=root
+          cat `ls -t *.sql | head -n 1` | docker exec -i mysql /usr/bin/mysql -u root -proot
 
       - name: Stop backend
         run: docker-compose -f /orbitar/docker-compose.yml stop backend
