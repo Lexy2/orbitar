@@ -30,7 +30,7 @@ jobs:
         run: |
           cd `ls -t | head -n 1`
           unzip -P $BACKUP_PASSWORD `ls -t | head -n 1`
-          cat `ls -t *.sql | head -n 1` | docker exec -i mysql /usr/bin/mysql -u root --proot
+          cat `ls -t *.sql | head -n 1` | docker exec -i mysql /usr/bin/mysql -u root -proot
 
       - name: Remove PII
         run: |
