@@ -13,12 +13,17 @@ jobs:
   sanitize-db:
     runs-on: ubuntu-latest
     environment: Production
-    steps:
-      - name: Run default MySQL instance
+
+    services:
+      mysql:
+        image: mysql:5.7
         env:
           MYSQL_ROOT_PASSWORD: root
-        run: docker run --rm --detach --publish 3306:3306 --env MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD --name mysql --platform linux/amd64 mysql:5.7
+        ports:
+          - "3306:3306"
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=10s --health-retries=10
 
+    steps:
       - name: Download DB backup
         uses: dawidd6/action-download-artifact@v2
         with:
