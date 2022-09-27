@@ -58,7 +58,7 @@ jobs:
       - name: Compress database
         env:
           BACKUP_PASSWORD: ${{ secrets.STAGING_BACKUP_PASSWORD }}
-        run: zip -m -P $STAGING_BACKUP_PASSWORD stage-backup.zip stage-backup.sql
+        run: zip -m -P $BACKUP_PASSWORD stage-backup.zip stage-backup.sql
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
