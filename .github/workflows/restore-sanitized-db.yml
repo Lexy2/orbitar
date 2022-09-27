@@ -44,7 +44,7 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: root
         run: |
-          cat <<EOF | /usr/bin/mysql -h 127.0.0.1 -u root -p$MYSQL_ROOT_PASSWORD
+          cat <<EOF | /usr/bin/mysql -h 127.0.0.1 -u root -p$MYSQL_ROOT_PASSWORD --database orbitar_db
           delete from invites;
           delete from user_webpush;
           update users set email='user@example.com';
