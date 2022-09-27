@@ -31,3 +31,10 @@ jobs:
           name: ${{ env.backupFileName }}
           path: ${{ env.backupFileName }}.zip
           if-no-files-found: error
+
+      - name: Clean up working directory
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
