@@ -53,7 +53,7 @@ jobs:
       - name: Dump database
         env:
           MYSQL_ROOT_PASSWORD: root
-        run: mysqldump --host 127.0.0.1 --default-character-set=utf8mb4 --single-transaction --add-drop-database --databases orbitar_db activity_db -u root -p$MYSQL_ROOT_PASSWORD > stage-backup.sql
+        run: mysqldump --host 127.0.0.1 --column-statistics=0 --default-character-set=utf8mb4 --single-transaction --add-drop-database --databases orbitar_db activity_db -u root -p$MYSQL_ROOT_PASSWORD > stage-backup.sql
       
       - name: Compress database
         env:
