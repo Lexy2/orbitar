@@ -38,13 +38,13 @@ jobs:
         run: |
           cd `ls -t | head -n 1`
           unzip -P $BACKUP_PASSWORD `ls -t | head -n 1`
-          cat `ls -t *.sql | head -n 1` | /usr/bin/mysql -u root -p$MYSQL_ROOT_PASSWORD
+          cat `ls -t *.sql | head -n 1` | /usr/bin/mysql -h 127.0.0.1 -u root -p$MYSQL_ROOT_PASSWORD
 
       - name: Remove PII
         env:
           MYSQL_ROOT_PASSWORD: root
         run: |
-          cat <<EOF | /usr/bin/mysql -u root -p$MYSQL_ROOT_PASSWORD
+          cat <<EOF | /usr/bin/mysql -h 127.0.0.1 -u root -p$MYSQL_ROOT_PASSWORD
           delete from invites;
           delete from user_webpush;
           update users set email='user@example.com';
@@ -53,7 +53,7 @@ jobs:
       - name: Dump database
         env:
           MYSQL_ROOT_PASSWORD: root
-        run: mysqldump --default-character-set=utf8mb4 --single-transaction --add-drop-database --databases orbitar_db activity_db -u root -p$MYSQL_ROOT_PASSWORD > stage-backup.sql
+        run: mysqldump --host 127.0.0.1 --default-character-set=utf8mb4 --single-transaction --add-drop-database --databases orbitar_db activity_db -u root -p$MYSQL_ROOT_PASSWORD > stage-backup.sql
       
       - name: Compress database
         env:
@@ -66,9 +66,6 @@ jobs:
           name: stage-backup
           path: stage-backup.zip
           if-no-files-found: error
-
-      - name: Stop MySQL instance
-        run: docker stop mysql
 
   restore-db:
     needs: sanitize-db
