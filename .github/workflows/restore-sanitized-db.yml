@@ -15,7 +15,9 @@ jobs:
     environment: Production
     steps:
       - name: Run default MySQL instance
-        run: docker run --rm --detach --publish 3306:3306 --env MYSQL_ROOT_PASSWORD=root --name mysql --platform linux/amd64 mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        run: docker run --rm --detach --publish 3306:3306 --env MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD --name mysql --platform linux/amd64 mysql:5.7
 
       - name: Download DB backup
         uses: dawidd6/action-download-artifact@v2
@@ -27,21 +29,26 @@ jobs:
       - name: Unzip artifact & load DB
         env:
           BACKUP_PASSWORD: ${{ secrets.BACKUP_PASSWORD }}
+          MYSQL_ROOT_PASSWORD: root
         run: |
           cd `ls -t | head -n 1`
           unzip -P $BACKUP_PASSWORD `ls -t | head -n 1`
-          cat `ls -t *.sql | head -n 1` | docker exec -i mysql /usr/bin/mysql -u root -proot
+          cat `ls -t *.sql | head -n 1` | docker exec -i mysql /usr/bin/mysql -u root -p$MYSQL_ROOT_PASSWORD
 
       - name: Remove PII
+        env:
+          MYSQL_ROOT_PASSWORD: root
         run: |
-          cat <<EOF | docker exec -i mysql /usr/bin/mysql -u root -proot
+          cat <<EOF | docker exec -i mysql /usr/bin/mysql -u root -p$MYSQL_ROOT_PASSWORD
           delete from invites;
           delete from user_webpush;
           update users set email='user@example.com';
           EOF
 
       - name: Dump database
-        run:  docker exec -i mysql mysqldump --default-character-set=utf8mb4 --single-transaction --add-drop-database --databases orbitar_db activity_db -u root -proot > stage-backup.sql
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        run:  docker exec -i mysql mysqldump --default-character-set=utf8mb4 --single-transaction --add-drop-database --databases orbitar_db activity_db -u root -p$MYSQL_ROOT_PASSWORD > stage-backup.sql
       
       - name: Compress database
         env:
