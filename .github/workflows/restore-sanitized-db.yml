@@ -85,8 +85,9 @@ jobs:
         run: |
           cp -f /opt/deployment-specific-files/chain.pem $GITHUB_WORKSPACE/caddy/certs
           cp -f /opt/deployment-specific-files/priv.pem $GITHUB_WORKSPACE/caddy/certs
-          cp -f /opt/deployment-specific-files/.env $GITHUB_WORKSPACE/      - name: Download artifact
-
+          cp -f /opt/deployment-specific-files/.env $GITHUB_WORKSPACE/      
+      
+      - name: Download artifact
         uses: actions/download-artifact@v3
         with:
           name: stage-backup
